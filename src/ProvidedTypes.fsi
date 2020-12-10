@@ -363,6 +363,11 @@ type ProvidedTypeDefinition =
     static member Logger: (string -> unit) option ref
 
 
+[<Class>]
+type ProvidedRecordDefnition =
+    inherit ProvidedTypeDefinition
+    new: assembly:Assembly * namespaceName:string * className:string * recordFields:seq<{| Name: string; Description: string; FieldType: Type |}> -> ProvidedRecordDefnition
+
 #if !NO_GENERATIVE
 /// A provided generated assembly
 type ProvidedAssembly =

@@ -1942,14 +1942,8 @@ and ProvidedTypeDefinition(isTgt: bool, container:TypeContainer, className: stri
 
     static member Logger: (string -> unit) option ref = ref None
 
-and FieldDefinition = {
-    Name: string
-    Description: string
-    FieldType: Type
-}
-
 //and ProvidedTypeDefinition(isTgt: bool, container:TypeContainer, className: string, getBaseType: (unit -> Type option), attrs: TypeAttributes, getEnumUnderlyingType, staticParams, staticParamsApply, backingDataSource, customAttributesData, nonNullable, hideObjectMethods, typeBuilder: ITypeBuilder) as this =
-and ProvidedRecordDefnition (isTgt: bool, container:TypeContainer, className: string, recordFields:seq<FieldDefinition>, getBaseType: (unit -> Type option), attrs: TypeAttributes, getEnumUnderlyingType, staticParams, staticParamsApply, backingDataSource, customAttributesData, nonNullable, hideObjectMethods) as this =
+and ProvidedRecordDefnition (isTgt: bool, container:TypeContainer, className: string, recordFields:seq<{| Name: string; Description: string; FieldType: Type |}>, getBaseType: (unit -> Type option), attrs: TypeAttributes, getEnumUnderlyingType, staticParams, staticParamsApply, backingDataSource, customAttributesData, nonNullable, hideObjectMethods) as this =
     inherit ProvidedTypeDefinition(isTgt, container, className, getBaseType, attrs, getEnumUnderlyingType, staticParams, staticParamsApply, backingDataSource, customAttributesData, nonNullable, hideObjectMethods, Utils.defaultTypeBuilder)
     do
         [
@@ -2044,7 +2038,10 @@ and ProvidedRecordDefnition (isTgt: bool, container:TypeContainer, className: st
 
     let providedTypeMembers =
         recordFields
-        |> Seq.mapi (fun index {Name = fieldName; FieldType = fieldType; Description = doc } ->
+        |> Seq.mapi (fun index recordField ->
+            let fieldName = recordField.Name
+            let fieldType = recordField.FieldType
+            let doc = recordField.Description
             if isNull fieldType then
                 failwithf "Unknown column type: %A" fieldType
             let field = ProvidedField(false, sprintf "%s@" fieldName, FieldAttributes.Assembly, fieldType, null, (K [| mkDebuggerBrowsableAttribute() |]))
@@ -2167,7 +2164,7 @@ and ProvidedRecordDefnition (isTgt: bool, container:TypeContainer, className: st
             false,
             K [| |]))
 
-    new (assembly:Assembly, namespaceName, className:string, recordFields :seq<FieldDefinition>) =
+    new (assembly:Assembly, namespaceName, className:string, recordFields :seq<{| Name: string; Description: string; FieldType: Type |}>) =
         let attrs =
             TypeAttributes.Public
             ||| TypeAttributes.Class
